@@ -2,13 +2,11 @@
 
 ## Reference Docs:
 - [Tremendous Docs](https://developers.tremendous.com/reference/rewards)
-- [Tremendous Oauth](https://developers.tremendous.com/docs/oauth-2```go
-  client := tremendous.NewClient(http.DefaultClient)
-  defer client.Close()
-```0)
+- [Tremendous Oauth](https://developers.tremendous.com/docs/oauth-2)
 
 
 ### Setup
+
 ```go
 client := tremendous.NewClient(http.DefaultClient)
 defer client.Close()
@@ -61,4 +59,38 @@ go func() {
 
 members, err =oauthClientAccount2.ListMembers(context.Background())
 
+```
+
+
+```go
+client := tremendous.NewClient(http.DefaultClient)
+defer client.Close()
+
+// Should retrieve CODE from url param on tremendous redirect
+token, err := client.SendOauthRequest(ctx, &AccessTokenRequest{
+    ClientId:     c.clientID,
+    ClientSecret: c.clientSecret,
+    GrantType:    GrantTypeAuthorizationCode,
+    RedirectUri:"{OAUTH_URI}",
+    Code: "{CODE}"
+})
+
+// persist token
+// create oauth client using client.NewClientWithOAuth()
+
+
+func handle(w http.ResponseWriter, r *http.Request) {
+  client := tremendous.NewClient(http.DefaultClient)
+  defer client.Close()
+  
+  // Should retrieve CODE from url param on tremendous redirect
+  token, err := client.SendOauthRequest(ctx, &AccessTokenRequest{
+    ClientId:     c.clientID,
+    ClientSecret: c.clientSecret,
+    GrantType:    GrantTypeAuthorizationCode,
+    RedirectUri:  "{OAUTH_URI}",
+    Code:         r.URL.Query().Get("code"),
+  })
+    // persist token
+}
 ```
