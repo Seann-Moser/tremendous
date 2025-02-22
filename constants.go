@@ -1,0 +1,262 @@
+package tremendous
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/url"
+	"path"
+	"strings"
+	"time"
+)
+
+const (
+	LiveEndpoint    = "https://api.tremendous.com/api/v2"
+	TestingEndpoint = "https://testflight.tremendous.com/api/v2"
+)
+
+const (
+	FundingSourcesEndpoint = "/funding_sources"
+	OrdersEndpoint         = "/orders"
+	CampaignEndpoint       = "/campaigns"
+	PingEndpoint           = "/ping"
+	FieldsEndpoint         = "/fields"
+	RewardsEndpoint        = "/rewards"
+
+	OauthAuthorizationEndpoint = "/oauth/authorize"
+	OauthTokenEndpoint         = "/oauth/token"
+)
+
+type DeliveryMethod string
+
+const (
+	DeliveryMethodEmail = DeliveryMethod("EMAIL")
+	DeliveryMethodLink  = DeliveryMethod("LINK")
+	DeliveryMethodPhone = DeliveryMethod("PHONE")
+)
+
+type GrantType string
+
+const (
+	GrantTypeAuthorizationCode GrantType = "authorization_code"
+	GrantTypeRefreshToken      GrantType = "refresh_token"
+)
+
+type OrderStatus string
+
+const (
+	OrderStatusCart     OrderStatus = "cart"
+	OrderStatusExecuted OrderStatus = "executed"
+	OrderStatusFailed   OrderStatus = "failed"
+)
+
+type RoleType string
+
+const (
+	RoleTypeAdmin  RoleType = "admin"
+	RoleTypeMember RoleType = "member"
+)
+
+type FoundingSources struct {
+	FundingSources []*FoundingSource `json:"funding_sources"`
+}
+type FoundingSource struct {
+	Method string `json:"method"`
+	Id     string `json:"id"`
+
+	Type string `json:"type"`
+
+	Meta FoundingSourceMeta `json:"meta"`
+}
+
+type FoundingSourceMeta struct {
+	AvailableCents int `json:"available_cents"`
+	PendingCents   int `json:"pending_cents"`
+}
+
+type Orders struct {
+	Id         string    `json:"id"`
+	ExternalId string    `json:"external_id"`
+	CreatedAt  time.Time `json:"created_at"`
+	Status     string    `json:"status"`
+	Channel    string    `json:"channel"`
+	Payment    Payment   `json:"payment"`
+	Reward     Reward    `json:"reward"`
+}
+type Payment struct {
+	FundingSourceId string  `json:"funding_source_id"`
+	Subtotal        float64 `json:"subtotal"`
+	Total           float64 `json:"total"`
+	Fees            float64 `json:"fees"`
+}
+
+type Campaigns struct {
+	Campaigns []*Campaign `json:"campaigns"`
+}
+
+type Campaign struct {
+	Id          string   `json:"id"`
+	Products    []string `json:"products"`
+	Description string   `json:"description"`
+	Name        string   `json:"name"`
+}
+
+type AccessTokenRequest struct {
+	ClientId     string    `json:"client_id"`
+	ClientSecret string    `json:"client_secret"`
+	RedirectUri  string    `json:"redirect_uri,omitempty"`
+	GrantType    GrantType `json:"grant_type"`
+	Code         string    `json:"code,omitempty"`
+	RefreshToken string    `json:"refresh_token"`
+}
+
+type Fields struct {
+	Fields []Field `json:"fields"`
+}
+
+type Field struct {
+	Id       string    `json:"id"`
+	Label    string    `json:"label"`
+	DataType string    `json:"data_type"`
+	Data     FieldData `json:"data"`
+	Required bool      `json:"required"`
+	Scope    string    `json:"scope"`
+}
+type FieldData struct {
+	Options []string `json:"options"`
+}
+
+type Rewards struct {
+	Rewards []*Reward `json:"rewards"`
+}
+
+type Reward struct {
+	Id        string `json:"id"`
+	OrderId   string `json:"order_id"`
+	CreatedAt string `json:"created_at"`
+	Value     struct {
+		Denomination float64 `json:"denomination"`
+		CurrencyCode string  `json:"currency_code"`
+	} `json:"value"`
+	Delivery struct {
+		Method string `json:"method"`
+		Status string `json:"status"`
+	} `json:"delivery"`
+	Recipient struct {
+		Email string `json:"email"`
+		Name  string `json:"name"`
+	} `json:"recipient"`
+	CustomFields []struct {
+		Id    string `json:"id"`
+		Value string `json:"value"`
+		Label string `json:"label"`
+	} `json:"custom_fields"`
+}
+type Errors struct {
+	Errors struct {
+		Message string                 `json:"message"`
+		Payload map[string]interface{} `json:"payload"`
+	} `json:"errors"`
+}
+
+type Product struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Category  string `json:"category"`
+	Countries []struct {
+		Abbr string `json:"abbr"`
+	} `json:"countries"`
+	Images []struct {
+		Src string `json:"src"`
+	} `json:"images"`
+	Skus []struct {
+		Min int `json:"min"`
+		Max int `json:"max"`
+	} `json:"skus"`
+}
+
+type Products struct {
+	Products []*Product `json:"products"`
+}
+
+type Invoice struct {
+	Id       string `json:"id"`
+	PoNumber string `json:"po_number"`
+	Amount   int    `json:"amount"`
+	Status   string `json:"status"`
+}
+
+type Invoices struct {
+	Invoices []*Invoice `json:"invoices"`
+}
+
+type Org struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Website string `json:"website"`
+}
+
+type OrgAccessToken struct {
+	AccessToken string `json:"access_token"`
+}
+type Organization struct {
+	Organization Org `json:"organization"`
+}
+type Organizations struct {
+	Organization []*Organization `json:"s"`
+}
+
+type User struct {
+	Id        string `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	Status    string `json:"status"`
+	InviteUrl string `json:"invite_url"`
+}
+
+type Member struct {
+	Member User `json:"member"`
+}
+type Members struct {
+	Members []User `json:"members"`
+}
+
+type Hook struct {
+	Url string `json:"url"`
+
+	Id string `json:"id,omitempty"`
+
+	PrivateKey string `json:"private_key,omitempty"`
+}
+
+type Webhook struct {
+	Webhook Hook `json:"webhook"`
+}
+
+type WebhookEvents struct {
+	Events []string `json:"events"`
+}
+
+func formatResponse[T any](r *http.Response, err error) (*T, error) {
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.Body.Close()
+	var t T
+	err = json.NewDecoder(r.Body).Decode(&t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+func joinURL(baseURL, p string) string {
+	parsedURL, err := url.Parse(baseURL)
+	if err != nil {
+		return "" // Handle error accordingly
+	}
+
+	parsedURL.Path = path.Join(strings.TrimRight(parsedURL.Path, "/"), strings.TrimLeft(p, "/"))
+	return parsedURL.String()
+}
