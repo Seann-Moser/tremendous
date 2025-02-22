@@ -25,7 +25,7 @@ type TokenResponse struct {
 	CreatedAt    int    `json:"created_at"`
 }
 
-func (c *Client) sendOauthRequest(ctx context.Context, data *AccessTokenRequest) (*TokenResponse, error) {
+func (c *Client) SendOauthRequest(ctx context.Context, data *AccessTokenRequest) (*TokenResponse, error) {
 	body, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal access token request: %w", err)

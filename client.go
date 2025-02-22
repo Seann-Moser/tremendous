@@ -98,7 +98,7 @@ func (c *Client) doRequest(ctx context.Context, method, p string, body interface
 		return nil, err
 	}
 	if resp.StatusCode == http.StatusUnauthorized && c.refreshToken != "" && c.autoRefresh {
-		token, err := c.sendOauthRequest(ctx, &AccessTokenRequest{
+		token, err := c.SendOauthRequest(ctx, &AccessTokenRequest{
 			ClientId:     c.clientID,
 			ClientSecret: c.clientSecret,
 			GrantType:    GrantTypeRefreshToken,
@@ -216,7 +216,7 @@ func (c *Client) RetrieveOrganization(ctx context.Context, orgID string) (*Organ
 	return formatResponse[Organization](c.doRequest(ctx, http.MethodGet, "/organizations/"+orgID, nil))
 }
 
-func (c *Client) CreatOrgAccessToken(ctx context.Context, orgID string) (*OrgAccessToken, error) {
+func (c *Client) CreateOrgAccessToken(ctx context.Context, orgID string) (*OrgAccessToken, error) {
 	return formatResponse[OrgAccessToken](c.doRequest(ctx, http.MethodPost, "/organizations/"+orgID+"/access_token", nil))
 }
 
@@ -270,6 +270,6 @@ func (c *Client) SimulateWebhook(ctx context.Context, webhookID string, event st
 		Event string `json:"event"`
 	}
 
-	_, err := c.doRequest(ctx, http.MethodPost, "/webhooks/"+webhookID, SimulatedEvent{Event: event})
+	_, err := c.doRequest(ctx, http.MethodPost, "/webhooks/"+webhookID+"/simulate", SimulatedEvent{Event: event})
 	return err
 }

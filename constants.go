@@ -9,21 +9,25 @@ import (
 	"time"
 )
 
+type DeliveryStatus string
+
 const (
-	LiveEndpoint    = "https://api.tremendous.com/api/v2"
-	TestingEndpoint = "https://testflight.tremendous.com/api/v2"
+	DeliveryStatusPending DeliveryStatus = "PENDING"
+	DeliveryStatusSuccess DeliveryStatus = "SUCCEEDED"
+	DeliveryStatusFailed  DeliveryStatus = "FAILED"
+)
+
+type Scope string
+
+const (
+	ScopeDefault         = Scope("default")
+	ScopeTeamManagement  = Scope("team_management")
+	ScopeFraudPrevention = Scope("fraud_prevention")
 )
 
 const (
-	FundingSourcesEndpoint = "/funding_sources"
-	OrdersEndpoint         = "/orders"
-	CampaignEndpoint       = "/campaigns"
-	PingEndpoint           = "/ping"
-	FieldsEndpoint         = "/fields"
-	RewardsEndpoint        = "/rewards"
-
-	OauthAuthorizationEndpoint = "/oauth/authorize"
-	OauthTokenEndpoint         = "/oauth/token"
+	LiveEndpoint    = "https://api.tremendous.com/api/v2"
+	TestingEndpoint = "https://testflight.tremendous.com/api/v2"
 )
 
 type DeliveryMethod string
@@ -44,16 +48,16 @@ const (
 type OrderStatus string
 
 const (
-	OrderStatusCart     OrderStatus = "cart"
-	OrderStatusExecuted OrderStatus = "executed"
-	OrderStatusFailed   OrderStatus = "failed"
+	OrderStatusCart     OrderStatus = "CART"
+	OrderStatusExecuted OrderStatus = "EXECUTED"
+	OrderStatusFailed   OrderStatus = "FAILED"
 )
 
 type RoleType string
 
 const (
-	RoleTypeAdmin  RoleType = "admin"
-	RoleTypeMember RoleType = "member"
+	RoleTypeAdmin  RoleType = "ADMIN"
+	RoleTypeMember RoleType = "MEMBER"
 )
 
 type FoundingSources struct {
@@ -65,7 +69,7 @@ type FoundingSource struct {
 
 	Type string `json:"type"`
 
-	Meta FoundingSourceMeta `json:"meta"`
+	Meta map[string]interface{} `json:"meta"`
 }
 
 type FoundingSourceMeta struct {
@@ -74,13 +78,13 @@ type FoundingSourceMeta struct {
 }
 
 type Orders struct {
-	Id         string    `json:"id"`
-	ExternalId string    `json:"external_id"`
-	CreatedAt  time.Time `json:"created_at"`
-	Status     string    `json:"status"`
-	Channel    string    `json:"channel"`
-	Payment    Payment   `json:"payment"`
-	Reward     Reward    `json:"reward"`
+	Id         string      `json:"id"`
+	ExternalId string      `json:"external_id"`
+	CreatedAt  time.Time   `json:"created_at"`
+	Status     OrderStatus `json:"status"`
+	Channel    string      `json:"channel"`
+	Payment    Payment     `json:"payment"`
+	Reward     Reward      `json:"reward"`
 }
 type Payment struct {
 	FundingSourceId string  `json:"funding_source_id"`
@@ -129,27 +133,55 @@ type Rewards struct {
 	Rewards []*Reward `json:"rewards"`
 }
 
+type RewardValue struct {
+	Denomination float64 `json:"denomination"`
+	CurrencyCode string  `json:"currency_code"`
+}
+type DeliveryMeta struct {
+	SubjectLine string `json:"subject_line"`
+	FromName    string `json:"from_name"`
+}
+type Delivery struct {
+	Method DeliveryMethod `json:"method"`
+	Status DeliveryStatus `json:"status"`
+	Meta   DeliveryMeta   `json:"meta"`
+}
+type Recipient struct {
+	Email            string            `json:"email"`
+	Name             string            `json:"name"`
+	Phone            string            `json:"phone"`
+	RecipientAddress *RecipientAddress `json:"recipient_address"`
+}
+type RecipientAddress struct {
+	FullName string `json:"full_name"`
+	Address1 string `json:"address_1"`
+	Address2 string `json:"address_2"`
+	City     string `json:"city"`
+	State    string `json:"state"`
+	Zip      string `json:"zip"`
+}
+
+type CustomField struct {
+	Id    string `json:"id"`
+	Value string `json:"value"`
+	Label string `json:"label"`
+}
+type RewardEvents struct {
+	Type    string `json:"type"`
+	DateUtc string `json:"date_utc"`
+}
 type Reward struct {
-	Id        string `json:"id"`
-	OrderId   string `json:"order_id"`
-	CreatedAt string `json:"created_at"`
-	Value     struct {
-		Denomination float64 `json:"denomination"`
-		CurrencyCode string  `json:"currency_code"`
-	} `json:"value"`
-	Delivery struct {
-		Method string `json:"method"`
-		Status string `json:"status"`
-	} `json:"delivery"`
-	Recipient struct {
-		Email string `json:"email"`
-		Name  string `json:"name"`
-	} `json:"recipient"`
-	CustomFields []struct {
-		Id    string `json:"id"`
-		Value string `json:"value"`
-		Label string `json:"label"`
-	} `json:"custom_fields"`
+	Id         string          `json:"id"`
+	OrderId    string          `json:"order_id"`
+	CreatedAt  string          `json:"created_at"`
+	Products   []*Product      `json:"products"`
+	Events     []*RewardEvents `json:"events"`
+	CampaignID string          `json:"campaign_id"`
+
+	Value        RewardValue   `json:"value"`
+	Delivery     Delivery      `json:"delivery"`
+	Recipient    Recipient     `json:"recipient"`
+	CustomFields []CustomField `json:"custom_fields"`
 }
 type Errors struct {
 	Errors struct {
@@ -158,31 +190,42 @@ type Errors struct {
 	} `json:"errors"`
 }
 
+type Country struct {
+	Abbr string `json:"abbr"`
+}
+type Image struct {
+	Src string `json:"src"`
+}
+type Sku struct {
+	Min int `json:"min"`
+	Max int `json:"max"`
+}
 type Product struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Category  string `json:"category"`
-	Countries []struct {
-		Abbr string `json:"abbr"`
-	} `json:"countries"`
-	Images []struct {
-		Src string `json:"src"`
-	} `json:"images"`
-	Skus []struct {
-		Min int `json:"min"`
-		Max int `json:"max"`
-	} `json:"skus"`
+	Id        string    `json:"id"`
+	Name      string    `json:"name"`
+	Category  string    `json:"category"`
+	Countries []Country `json:"countries"`
+	Images    []Image   `json:"images"`
+	Skus      []Sku     `json:"skus"`
 }
 
 type Products struct {
 	Products []*Product `json:"products"`
 }
 
+type InvoiceStatus string
+
+const (
+	InvoiceStatusPending InvoiceStatus = "PENDING"
+	InvoiceStatusPaid    InvoiceStatus = "PAID"
+	InvoiceStatusDeleted InvoiceStatus = "DELETED"
+)
+
 type Invoice struct {
-	Id       string `json:"id"`
-	PoNumber string `json:"po_number"`
-	Amount   int    `json:"amount"`
-	Status   string `json:"status"`
+	Id       string        `json:"id"`
+	PoNumber string        `json:"po_number"`
+	Amount   int           `json:"amount"`
+	Status   InvoiceStatus `json:"status"`
 }
 
 type Invoices struct {
@@ -190,9 +233,10 @@ type Invoices struct {
 }
 
 type Org struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Website string `json:"website"`
+	ParentID string `json:"parent_id,omitempty"`
+	Id       string `json:"id,omitempty"`
+	Name     string `json:"name"`
+	Website  string `json:"website"`
 }
 
 type OrgAccessToken struct {
@@ -206,12 +250,12 @@ type Organizations struct {
 }
 
 type User struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	Status    string `json:"status"`
-	InviteUrl string `json:"invite_url"`
+	Id        string   `json:"id"`
+	Name      string   `json:"name"`
+	Email     string   `json:"email"`
+	Role      RoleType `json:"role"`
+	Status    string   `json:"status"`
+	InviteUrl string   `json:"invite_url"`
 }
 
 type Member struct {

@@ -17,7 +17,7 @@ func TestCreateOrganization(t *testing.T) {
 	}))
 	defer s.Close()
 
-	client := &Client{httpClient: s.Client(), endpoint: s.URL}
+	client := &Client{httpClient: s.Client(), endpoint: s.URL, apiKey: "test"}
 	org, err := client.CreateOrganization(context.Background(), &Organization{})
 	if err != nil || org == nil {
 		t.Errorf("expected valid response, got err: %v", err)
@@ -30,11 +30,11 @@ func TestListOrganizations(t *testing.T) {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`[]`))
+		w.Write([]byte(`{}`))
 	}))
 	defer s.Close()
 
-	client := &Client{httpClient: s.Client(), endpoint: s.URL}
+	client := &Client{httpClient: s.Client(), endpoint: s.URL, apiKey: "test"}
 	orgs, err := client.ListOrganizations(context.Background())
 	if err != nil || orgs == nil {
 		t.Errorf("expected valid response, got err: %v", err)
@@ -51,7 +51,7 @@ func TestRetrieveOrganization(t *testing.T) {
 	}))
 	defer s.Close()
 
-	client := &Client{httpClient: s.Client(), endpoint: s.URL}
+	client := &Client{httpClient: s.Client(), endpoint: s.URL, apiKey: "test"}
 	org, err := client.RetrieveOrganization(context.Background(), "org_123")
 	if err != nil || org == nil {
 		t.Errorf("expected valid response, got err: %v", err)
@@ -68,7 +68,7 @@ func TestCreateWebhook(t *testing.T) {
 	}))
 	defer s.Close()
 
-	client := &Client{httpClient: s.Client(), endpoint: s.URL}
+	client := &Client{httpClient: s.Client(), endpoint: s.URL, apiKey: "test"}
 	wh, err := client.CreateWebhook(context.Background(), "https://example.com")
 	if err != nil || wh == nil {
 		t.Errorf("expected valid response, got err: %v", err)
@@ -77,14 +77,14 @@ func TestCreateWebhook(t *testing.T) {
 
 func TestSimulateWebhook(t *testing.T) {
 	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost || r.URL.Path != "/webhooks/webhook_123" {
+		if r.Method != http.MethodPost || r.URL.Path != "/webhooks/webhook_123/simulate" {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
 		w.WriteHeader(http.StatusOK)
 	}))
 	defer s.Close()
 
-	client := &Client{httpClient: s.Client(), endpoint: s.URL}
+	client := &Client{httpClient: s.Client(), endpoint: s.URL, apiKey: "test"}
 	err := client.SimulateWebhook(context.Background(), "webhook_123", "test_event")
 	if err != nil {
 		t.Errorf("expected no error, got: %v", err)
