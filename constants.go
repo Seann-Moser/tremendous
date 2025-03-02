@@ -77,6 +77,9 @@ type FoundingSourceMeta struct {
 	PendingCents   int `json:"pending_cents"`
 }
 
+type OrdersList struct {
+	Orders []*OrderResponse `json:"orders"`
+}
 type Orders struct {
 	Id         string      `json:"id"`
 	ExternalId string      `json:"external_id"`
@@ -85,6 +88,15 @@ type Orders struct {
 	Channel    string      `json:"channel"`
 	Payment    Payment     `json:"payment"`
 	Reward     Reward      `json:"reward"`
+}
+type OrderResponse struct {
+	Id         string      `json:"id"`
+	ExternalId string      `json:"external_id"`
+	CreatedAt  time.Time   `json:"created_at"`
+	Status     OrderStatus `json:"status"`
+	Channel    string      `json:"channel"`
+	Payment    Payment     `json:"payment"`
+	Reward     []Reward    `json:"reward"`
 }
 type Payment struct {
 	FundingSourceId string  `json:"funding_source_id"`
@@ -145,6 +157,7 @@ type Delivery struct {
 	Method DeliveryMethod `json:"method"`
 	Status DeliveryStatus `json:"status"`
 	Meta   DeliveryMeta   `json:"meta"`
+	Link   string         `json:"link"`
 }
 type Recipient struct {
 	Email            string            `json:"email"`

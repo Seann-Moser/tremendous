@@ -15,7 +15,7 @@ func main() {
 	defer client.Close()
 
 	// if enabled and refresh token and client_id, client_secret are provided,
-	// it will generate a new access_token
+	// it will generate a new access_toke
 	autoRefresh := false
 
 	/*
@@ -24,7 +24,7 @@ func main() {
 	oauthClient := client.NewClientWithOAuth(tremendous.OauthConfig{
 		ClientId:     "",
 		ClientSecret: "",
-		AccessToken:  "",
+		AccessToken:  "PROD_6aRVAo5SA--NQTlACyH6wZsxAnEWSVihNM0C1WofJ5G",
 	}, autoRefresh)
 	go func() {
 		for oauth := range oauthClient.OauthRefresh() {

@@ -129,17 +129,17 @@ func (c *Client) doRequest(ctx context.Context, method, p string, body interface
 	return nil, fmt.Errorf("tremendous: unexpected status code: %d : %s", resp.StatusCode, string(b))
 }
 
-func (c *Client) CreateOrder(ctx context.Context, order *Orders) (*Orders, error) {
-	return formatResponse[Orders](c.doRequest(ctx, http.MethodPost, "/orders", order))
+func (c *Client) CreateOrder(ctx context.Context, order *Orders) (*OrderResponse, error) {
+	return formatResponse[OrderResponse](c.doRequest(ctx, http.MethodPost, "/orders", order))
 }
 
-func (c *Client) ListOrders(ctx context.Context) (*Orders, error) {
-	return formatResponse[Orders](c.doRequest(ctx, http.MethodGet, "/orders", nil))
+func (c *Client) ListOrders(ctx context.Context) (*OrdersList, error) {
+	return formatResponse[OrdersList](c.doRequest(ctx, http.MethodGet, "/orders", nil))
 }
 
-func (c *Client) RetrieveOrder(ctx context.Context, orderID string) (*Orders, error) {
+func (c *Client) RetrieveOrder(ctx context.Context, orderID string) (*OrderResponse, error) {
 	// /orders/{:id}
-	return formatResponse[Orders](c.doRequest(ctx, http.MethodGet, "/orders/"+orderID, nil))
+	return formatResponse[OrderResponse](c.doRequest(ctx, http.MethodGet, "/orders/"+orderID, nil))
 }
 
 func (c *Client) ListRewards(ctx context.Context) (*Rewards, error) {
