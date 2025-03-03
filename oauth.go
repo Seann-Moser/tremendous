@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 type OauthConfig struct {
@@ -30,8 +31,8 @@ func (c *Client) SendOauthRequest(ctx context.Context, data *AccessTokenRequest)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal access token request: %w", err)
 	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, joinURL(c.endpoint, "/oauth/token"), bytes.NewBuffer(body))
+	e := strings.ReplaceAll(c.endpoint, "/api/v2/", "")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, joinURL(e, "/oauth/token"), bytes.NewBuffer(body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
