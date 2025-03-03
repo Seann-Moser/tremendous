@@ -62,6 +62,12 @@ func (c Client) NewClientWithOAuth(config OauthConfig, autoRefresh bool) Client 
 	return c
 }
 
+func (c Client) InSandbox(sandbox bool) Client {
+	if sandbox {
+		c.endpoint = TestingEndpoint
+	}
+	return c
+}
 func (c Client) do(req *http.Request) (*http.Response, error) {
 	key := ""
 	if c.apiKey != "" {
