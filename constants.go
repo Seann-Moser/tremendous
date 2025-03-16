@@ -210,8 +210,8 @@ type Image struct {
 	Src string `json:"src"`
 }
 type Sku struct {
-	Min int `json:"min"`
-	Max int `json:"max"`
+	Min float64 `json:"min"`
+	Max float64 `json:"max"`
 }
 type Product struct {
 	Id        string    `json:"id"`
