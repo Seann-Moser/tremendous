@@ -87,7 +87,7 @@ type Orders struct {
 	Status     OrderStatus `json:"status"`
 	Channel    string      `json:"channel"`
 	Payment    Payment     `json:"payment"`
-	Reward     Reward      `json:"reward"`
+	Reward     RewardOrder `json:"reward"`
 }
 type OrderResponse struct {
 	Id         string      `json:"id"`
@@ -183,6 +183,20 @@ type RewardEvents struct {
 	Type    string `json:"type"`
 	DateUtc string `json:"date_utc"`
 }
+type RewardOrder struct {
+	Id         string          `json:"id"`
+	OrderId    string          `json:"order_id"`
+	CreatedAt  string          `json:"created_at"`
+	Products   []string        `json:"products"`
+	Events     []*RewardEvents `json:"events,omitempty"`
+	CampaignID string          `json:"campaign_id"`
+
+	Value        RewardValue   `json:"value"`
+	Delivery     Delivery      `json:"delivery"`
+	Recipient    Recipient     `json:"recipient"`
+	CustomFields []CustomField `json:"custom_fields,omitempty"`
+}
+
 type Reward struct {
 	Id         string          `json:"id"`
 	OrderId    string          `json:"order_id"`
