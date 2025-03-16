@@ -2,6 +2,7 @@ package tremendous
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
@@ -90,14 +91,18 @@ type Orders struct {
 	Reward     RewardOrder `json:"reward"`
 }
 type OrderResponse struct {
-	Id         string      `json:"id"`
-	ExternalId string      `json:"external_id"`
-	CreatedAt  time.Time   `json:"created_at"`
-	Status     OrderStatus `json:"status"`
-	Channel    string      `json:"channel"`
-	Payment    Payment     `json:"payment"`
-	Reward     []Reward    `json:"reward"`
+	Order struct {
+		Id         string    `json:"id"`
+		ExternalId string    `json:"external_id"`
+		CampaignId string    `json:"campaign_id"`
+		CreatedAt  time.Time `json:"created_at"`
+		Channel    string    `json:"channel"`
+		Status     string    `json:"status"`
+		Payment    Payment   `json:"payment"`
+		Rewards    []Reward  `json:"rewards"`
+	} `json:"order"`
 }
+
 type Payment struct {
 	FundingSourceId string  `json:"funding_source_id"`
 	Subtotal        float64 `json:"subtotal"`
@@ -312,10 +317,15 @@ func formatResponse[T any](r *http.Response, err error) (*T, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	defer r.Body.Close()
+	p, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	println(string(p))
+
 	var t T
-	err = json.NewDecoder(r.Body).Decode(&t)
+	err = json.Unmarshal(p, &t)
 	if err != nil {
 		return nil, err
 	}
